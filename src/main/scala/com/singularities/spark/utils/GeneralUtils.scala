@@ -19,11 +19,11 @@ object GeneralUtils {
   }
 
 
-  def getSquareRootBins(df: DataFrame, column: String): Double ={
+  private def getSquareRootBins(df: DataFrame, column: String): Double ={
     Math.sqrt(df.count())
   }
 
-  def getFreedmanDiaconisBins(df: DataFrame, column: String): Double ={
+  private def getFreedmanDiaconisBins(df: DataFrame, column: String): Double ={
     import org.apache.commons.math3.stat.descriptive._
 
     val columnArray = df.select(column).rdd.map(row => row(0).asInstanceOf[Double]).collect()
@@ -37,15 +37,15 @@ object GeneralUtils {
     2*iqr*Math.pow(df.count(), -1/3)
   }
 
-  def getRiceRuleBins(df: DataFrame, column: String): Double ={
+  private def getRiceRuleBins(df: DataFrame, column: String): Double ={
     Math.ceil(2 * Math.pow(df.count(), 1/3))
   }
 
-  def getSturgesBins(df: DataFrame, column: String): Double ={
+  private def getSturgesBins(df: DataFrame, column: String): Double ={
     (3.322 * Math.ceil(Math.log(df.count())/Math.log(2)))+1
   }
 
-  def getScottBins(df: DataFrame, column: String): Double ={
+  private def getScottBins(df: DataFrame, column: String): Double ={
     val deviation = df.select(stddev_pop(df(column))).collect().last.getDouble(0)
     (3.5*deviation)/Math.pow(df.count(), 1/3)
   }
@@ -56,7 +56,7 @@ object GeneralUtils {
     * @param df Input DataFrame
     * @param column The column to be used to generate the histogram
     * @param bins The specific number of bins to be used to generate the histogram.
-    * @return
+    * @return The two arrays containing the histogram information.
     */
   def histogramGivenBins(df: DataFrame, column: String, bins:Int) = {
     import df.sparkSession.implicits._
@@ -73,7 +73,7 @@ object GeneralUtils {
     *                 If the argument doesn't match with any of those, the default is Sturges.
     * @return The two arrays containing the histogram information.
     */
-  def histogram(df: DataFrame, column: String, strategy:String) = {
+  def histogram(df: DataFrame, column: String, strategy:String= "Sturges") = {
     var bins = 0.0;
     strategy match {
         case "Scott"=> bins = getScottBins(df, column)
